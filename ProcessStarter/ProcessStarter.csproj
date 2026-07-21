@@ -1,79 +1,28 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{74069168-1F03-4472-B6C3-6879D5EE21FC}</ProjectGuid>
+    <!-- Targets the current supported .NET runtime while retaining the Windows-only service APIs used by this application. -->
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <!-- WinExe preserves the service executable behavior and avoids creating a console when started by the Service Control Manager. -->
     <OutputType>WinExe</OutputType>
-    <RootNamespace>ProcessStarter</RootNamespace>
-    <AssemblyName>ProcessStarter</AssemblyName>
-    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <TargetFrameworkProfile />
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Existing interop code predates nullable annotations, so this migration avoids changing its runtime null semantics. -->
+    <Nullable>disable</Nullable>
+    <!-- Retains the existing assembly metadata until it can be deliberately migrated to SDK-generated attributes. -->
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
+
   <ItemGroup>
-    <Reference Include="log4net, Version=2.0.17.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
-      <HintPath>..\packages\log4net.2.0.17\lib\net45\log4net.dll</HintPath>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Configuration" />
-    <Reference Include="System.Configuration.Install" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Management" />
-    <Reference Include="System.ServiceProcess" />
-    <Reference Include="System.Web" />
-    <Reference Include="System.Xml" />
+    <!-- Supplies ConfigurationManager because the service command remains in the existing App.config file. -->
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="10.0.10" />
+    <!-- Provides ServiceBase and ServiceBase.Run on modern .NET for the Windows Service host. -->
+    <PackageReference Include="System.ServiceProcess.ServiceController" Version="10.0.10" />
+    <!-- Replaces log4net with Serilog's structured logging API. -->
+    <PackageReference Include="Serilog" Version="4.4.0" />
+    <!-- Retains the rolling service log file previously configured through log4net. -->
+    <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
+    <!-- Retains Windows Event Log diagnostics previously emitted by log4net. -->
+    <PackageReference Include="Serilog.Sinks.EventLog" Version="4.0.0" />
+    <!-- Adds the thread identifier required to preserve the prior log layout's diagnostic context. -->
+    <PackageReference Include="Serilog.Enrichers.Thread" Version="4.0.0" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Include="ConfigHelper.cs" />
-    <Compile Include="ProcessStarter.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="ProcessStarter.Designer.cs">
-      <DependentUpon>ProcessStarter.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Program.cs" />
-    <Compile Include="ProjectInstaller.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="ProjectInstaller.Designer.cs">
-      <DependentUpon>ProjectInstaller.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Win32.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="App.config">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="ProjectInstaller.resx">
-      <DependentUpon>ProjectInstaller.cs</DependentUpon>
-    </EmbeddedResource>
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

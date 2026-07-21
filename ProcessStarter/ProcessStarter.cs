@@ -15,15 +15,17 @@ namespace ProcessStarter
             InitializeComponent();
         }
 
+        // Former log4net calls below use Serilog templates to preserve error-code/process properties and exception overloads to keep stack traces.
         protected override void OnStart(string[] args)
         {
-            Program.Log.Info("Service has started");
+            // Serilog uses structured message templates rather than log4net's string-only API.
+            Program.Log.Information("Service has started");
             Initialise();
         }
 
         protected override void OnStop()
         {
-            Program.Log.Info("Service has stopped");
+            Program.Log.Information("Service has stopped");
         }
 
         public bool Initialise()
@@ -62,7 +64,7 @@ namespace ProcessStarter
             uint code = Win32.NetUserGetInfo(Environment.MachineName, username, 4, out bufptr);
             if (code != 0)
             {
-                Program.Log.Error($"NetUserGetInfo failed with error code: {code}. See: NET_API_STATUS");
+                Program.Log.Error("NetUserGetInfo failed with error code: {ErrorCode}. See: NET_API_STATUS", code);
                 throw new Exception($"NetUserGetInfo failed with error code: {code}. See: NET_API_STATUS");
             }
 
@@ -73,7 +75,7 @@ namespace ProcessStarter
             }
             catch (Exception ex)
             {
-                Program.Log.Error($"GetUserInfo: Could not convert data to UserInfo. Exception: {ex.Message}");
+                Program.Log.Error(ex, "GetUserInfo: Could not convert data to UserInfo");
                 throw;
             }
         }
@@ -85,7 +87,7 @@ namespace ProcessStarter
             if (Win32.LogonUser(username, domain, password, (UInt32) Win32.Logon32Type.Interactive,
                     (UInt32) Win32.Logon32Provider.Default, out token) == 0)
             {
-                Program.Log.Error($"LogonUser failed with error code: {Marshal.GetLastWin32Error()}");
+                Program.Log.Error("LogonUser failed with error code: {ErrorCode}", Marshal.GetLastWin32Error());
                 return IntPtr.Zero;
             }
 
@@ -96,7 +98,7 @@ namespace ProcessStarter
         {
             if (Win32.CloseHandle(token) == 0)
             {
-                Program.Log.Error($"CloseHandle failed with error code: {Marshal.GetLastWin32Error()}");
+                Program.Log.Error("CloseHandle failed with error code: {ErrorCode}", Marshal.GetLastWin32Error());
                 return false;
             }
             return true;
@@ -111,8 +113,7 @@ namespace ProcessStarter
             }
             catch (Exception ex)
             {
-                Program.Log.Error(
-                    $"LoadUserProfile: Could not get user info for user {username}. Exception: {ex.Message}");
+                Program.Log.Error(ex, "LoadUserProfile: Could not get user info for user {UserName}", username);
                 return IntPtr.Zero;
             }
 
@@ -123,7 +124,7 @@ namespace ProcessStarter
 
             if (Win32.LoadUserProfile(token, ref pInfo) == 0)
             {
-                Program.Log.Error($"LoadUserProfile failed with error code: {Marshal.GetLastWin32Error()}");
+                Program.Log.Error("LoadUserProfile failed with error code: {ErrorCode}", Marshal.GetLastWin32Error());
                 return IntPtr.Zero;
             }
 
@@ -151,7 +152,7 @@ namespace ProcessStarter
             if (Win32.CreateProcessAsUser(token, appName, appArgs, ref processAttributes, ref threadAttributes,
                     inheritHandles ? 1 : 0, creationFlags, environment, currentDir, ref startupInfo, out pi) == 0)
             {
-                Program.Log.Error($"CreateProcessAsUser failed with error code: {Marshal.GetLastWin32Error()}");
+                Program.Log.Error("CreateProcessAsUser failed with error code: {ErrorCode}", Marshal.GetLastWin32Error());
                 return null;
             }
 
@@ -161,7 +162,7 @@ namespace ProcessStarter
             }
             catch (ArgumentException ex)
             {
-                Program.Log.Error($"Process with id {pi.dwProcessId} does not exist. {ex.Message}");
+                Program.Log.Error(ex, "Process with id {ProcessId} does not exist", pi.dwProcessId);
                 return null;
             }
         }

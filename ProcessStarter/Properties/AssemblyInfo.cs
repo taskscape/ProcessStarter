@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 // Ogólne informacje o zestawie są kontrolowane poprzez następujący 
 // zestaw atrybutów. Zmień wartości tych atrybutów, aby zmodyfikować informacje
 // powiązane z zestawem.
-[assembly: log4net.Config.XmlConfigurator(Watch = true)]
+// Serilog is configured explicitly at application startup, replacing log4net's assembly-level XML configuration hook.
 [assembly: AssemblyTitle("ProcessStarter")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]

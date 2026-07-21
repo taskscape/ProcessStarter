@@ -4,7 +4,7 @@ using System.Configuration;
 namespace ProcessStarter
 {
     /// <summary>
-    /// Helper class for service configuration
+    /// Helper class for service configuration. ConfigurationManager support is retained through its modern .NET package so the service command remains externally configurable.
     /// </summary>
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2211:NonConstantFieldsShouldNotBeVisible", Justification = "Public constant fields are fine here.")]
     public static class ConfigHelper
